@@ -1,0 +1,1680 @@
+comment {
+
+  This file contains standard fractal types for Ultra Fractal. Many of the
+  fractal formulas here were written by other formula authors, as noted in the
+  comments with each formula. All formulas have been edited and simplified by
+  Frederik Slijkerman.
+  
+  These formulas are also available as objects for the common.ulb framework in
+  Standard.ulb.
+  
+}
+
+NovaJulia {
+;
+; Nova fractal (Julia form), a modified Newtonian-style fractal. 
+; The formula was first shown to me by Paul Derbyshire (who named it 
+; Nova). It has also appeared elsewhere under other names. If you 
+; leave the Julia seed at the default (0,0), you can use this as a 
+; general Newton-style fractal as in FractInt.
+;
+; Written by Damien M. Jones.
+;
+init:
+  complex zsquared = (0,0)
+  complex zcubed = (0,0)
+  complex zold = (0,0)
+  
+  z = #pixel
+  
+loop:
+  IF (val_n == 1); special optimized routine for power 3
+    zold = z
+
+    z = (z - floor(z/2)*2)/(tan(z)^z)
+    ;z = (z - floor(z/2)*2)/sin(z)
+    ;z = (z - floor(z/2)*2)*z^z
+
+    ;mod
+    ;z = (z - floor(z/2)*2)
+    ;z = (-1^z)*sin(z)*(z - floor(z/2)*2)
+
+    ;z = 1/(z^log(-1^z))
+   
+    ;z = 2^(-(z^3))
+    ;z = z^(-(z^log(z^z)))
+    ;z = 1/(z^log(z))
+
+    ;z = ((-1^z)/(z^z))
+
+    ;------------------
+    ; Trig Functions
+    ;------------------
+    ;z = sin(z)
+    ;z = cos(z)
+    ;z = tan(z)
+    ;z = 1/sin(z)
+    ;z = 1/cos(z)
+    ;z = 1/tan(z)
+    ;------------------
+    ;z = sin(z)^z
+    ;z = cos(z)^z
+    ;z = tan(z)^z
+    ;z = sin(z)^(-z)
+    ;z = cos(z)^(-z)
+    ;z = tan(z)^(-z)
+    ;------------------
+    ;z = z^(sin(z))
+    ;z = z^(cos(z))
+    ;z = z^(tan(z))
+    ;z = z^(sin(z)^(-1))
+    ;z = z^(cos(z))
+    ;z = z^(tan(z))
+
+
+    ;z = z^2
+
+    ;z = z^(-tan(z)) 
+    ;z = sin(z)^z
+    
+    ;z = sin(z)^2 + cos(z)^2
+    ;z = 2^sin(z) + 2^cos(z)
+
+  ELSE
+    zold = z
+
+    z = (z - floor(z/2)*2)/(tan(z)^z)
+    ;z = (z - floor(z/2)*2)/sin(z)
+    ;z = (z - floor(z/2)*2)*z^z
+
+    ;mod
+    ;z = (z - floor(z/2)*2)
+    ;z = (-1^z)*sin(z)*(z - floor(z/2)*2)
+
+    ;z = 1/(z^log(-1^z))
+   
+    ;z = 2^(-(z^3))
+    ;z = z^(-(z^log(z^z)))
+    ;z = 1/(z^log(z))
+
+    ;z = ((-1^z)/(z^z))
+
+
+    ; Trig Functions
+    ;z = z^(sin(z))
+    ;z = z^(-tan(z)) 
+    ;z = sin(z)^z
+    
+    ;z = sin(z)^2 + cos(z)^2
+    ;z = 2^sin(z) + 2^cos(z)
+
+  ENDIF
+  
+bailout:
+  |z - zold| > @bailout
+  
+default:
+  title = "Function List"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\nova.html"
+  precision = 4
+$IFDEF VER50
+  rating = recommended
+$ENDIF
+  maxiter = 1000
+  periodicity = 0
+  center = (0,0)
+  magn = 1.5
+  
+  param seed
+    caption = "Julia Seed"
+    default = (0,0)
+    hint = "This is the Julia seed, a constant parameter which \
+            defines the shape of the fractal. Use the Switch feature in \
+            combination with the Nova (Mandelbrot) formula to find interesting \
+            values."
+  endparam
+  param power
+    caption = "Exponent"
+    default = (3,0)
+    hint = "Overall exponent for the equation. The value (3,0) gives \
+            the classic Nova type."
+  endparam
+  param bailout
+    caption = "Bailout"
+    default = 0.00001
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Bailout value; smaller values will cause more \
+            iterations to be done for each point."
+  endparam
+  param relax
+    caption = "Relaxation"
+    default = (1,0)
+    hint = "This can be used to slow down the convergence of \
+            the formula."
+  endparam
+
+switch:
+  type = "NovaMandel"
+  power = @power
+  bailout = @bailout
+  relax = @relax
+}
+
+
+NovaMandel {
+;
+; Nova fractal (Mandelbrot form), a modified Newtonian-style fractal.  
+; The formula was first shown to me by Paul Derbyshire (who named it 
+; Nova).  It has also appeared elsewhere under other names.  Use this 
+; formula and the Switch feature to select a Nova (Julia) fractal.
+;
+; Written by Damien M. Jones.
+;
+init:
+  complex zsquared = (0,0)
+  complex zcubed = (0,0)
+  complex zold = (0,0)
+  
+  z = @start
+  
+loop:
+  IF (@power == (3,0)); special optimized routine for power 3
+    zsquared = sqr(z)
+    zcubed = zsquared * z
+    zold = z
+    z = z - @relax * (zcubed-1) / (3*zsquared) + #pixel
+  ELSE
+    zold = z
+    z = z - @relax * (z^@power-1) / (@power * z^(@power-1)) + #pixel
+  ENDIF
+  
+bailout:
+  |z - zold| > @bailout
+  
+default:
+  title = "Nova (Mandelbrot)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\nova.html"
+$IFDEF VER50
+  rating = recommended
+$ENDIF
+  maxiter = 1000
+  periodicity = 0
+  center = (-0.5,0)
+  magn = 1.5
+  
+  param start
+    caption = "Start Value"
+    default = (1,0)
+    hint = "Starting value for each point.  You can use this to \
+            'perturb' the fractal."
+  endparam
+  param power
+    caption = "Exponent"
+    default = (3,0)
+    hint = "Overall exponent for the equation. The value (3,0) gives \
+            the classic Nova Mandelbrot-type fractal."
+  endparam
+  param bailout
+    caption = "Bailout"
+    default = 0.00001
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Bailout value; smaller values will cause more \
+            iterations to be done for each point."
+  endparam
+  param relax
+    caption = "Relaxation"
+    default = (1,0)
+    hint = "This can be used to slow down the convergence of \
+            the formula."
+  endparam
+
+switch:
+  type = "NovaJulia"
+  seed = #pixel
+  power = @power
+  bailout = @bailout
+  relax = @relax
+}
+
+
+SlopeJulia {
+;
+; Julia set that creates 3D lighting effects when combined
+; with the Lighting coloring algorithm. The calculations
+; are modified so that z contains a surface normal
+; to the set instead of the orbit value.  This is
+; intended primarily for the Lighting coloring
+; method, but might have interesting results for
+; other methods, too.
+;
+; Written by Damien M. Jones.
+;
+init:
+  complex z1 = #pixel; primary iterated point
+  complex z2 = #pixel + @offset; horizontally offset point
+  complex z3 = #pixel + flip(@offset); vertically offset point
+  int done = 2
+  float modz = 0.0
+  float il2 = 1/log(real(@power)); Inverse log 2 (precalc).
+  float lp = log(log(@bailout)); log(log bailout) (precalc).
+  float e1 = 0.0; potentials
+  float e2 = 0.0
+  float e3 = 0.0
+  float vx = 0.0; normal vector
+  float vy = 0.0
+  float vz = 0.0
+  float vd = 0.0
+  float d1 = 0.0; distances
+  float d2 = 0.0
+  float d3 = 0.0
+  float s1 = 1.0e20; smallest distances
+  float s2 = 1.0e20
+  float s3 = 1.0e20
+  complex g1 = (0,0); distance estimates
+  complex g2 = (0,0)
+  complex g3 = (0,0)
+  complex o1 = (0,0)
+  complex o2 = (0,0)
+  complex o3 = (0,0)
+  
+loop:
+  z1 = z1^@power + @seed; iterate each point
+  z2 = z2^@power + @seed
+  z3 = z3^@power + @seed
+  done = done + 1; increment iteration counter
+
+  IF (@zmode == 1); smallest |z|
+    d1 = |z1|; get current distances from origin
+    d2 = |z2|
+    d3 = |z3|
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 2); smallest |real(z)|
+    d1 = abs(real(z1)); get current distances from i axis
+    d2 = abs(real(z2))
+    d3 = abs(real(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 3); smallest |imag(z)|
+    d1 = abs(imag(z1)); get current distances from r axis
+    d2 = abs(imag(z2))
+    d3 = abs(imag(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 4); smallest |real(z)|+|imag(z)|
+    d1 = abs(real(z1))+abs(imag(z1)); get current distances from i axis
+    d2 = abs(real(z2))+abs(imag(z2))
+    d3 = abs(real(z3))+abs(imag(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 5); smallest |atan(z)|
+    d1 = abs(atan2(z1)); get current angles
+    d2 = abs(atan2(z2))
+    d3 = abs(atan2(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 6); distance estimator
+    o1 = g1
+    o2 = g2
+    o3 = g3
+    g1 = @power * z1^(@power-1) * g1 + 1; update distance estimates
+    g2 = @power * z2^(@power-1) * g2 + 1
+    g3 = @power * z3^(@power-1) * g3 + 1
+  ENDIF
+
+  modz = |z1|
+  IF (modz > @bailout ||\
+      @everyiter ||\
+      done == #maxit + 2); done, or every iteration, or last
+    ; determine continuous iteration (height) for each point
+    IF (@zmode == 0); height based on potential
+      e1 = (done + il2*lp - il2*log(log(cabs(z1)))) * @zscale
+      e2 = (done + il2*lp - il2*log(log(cabs(z2)))) * @zscale
+      e3 = (done + il2*lp - il2*log(log(cabs(z3)))) * @zscale
+    ELSEIF (@zmode >= 1 && @zmode <= 5); height based on smallest |z|
+      e1 = s1 * @zscale
+      e2 = s2 * @zscale
+      e3 = s3 * @zscale
+    ELSEIF (@zmode == 6); height based on distance estimator
+      e1 = sqrt(2*log(cabs(z1)) * cabs(z1) / cabs(o1)) * @zscale
+      e2 = sqrt(2*log(cabs(z2)) * cabs(z2) / cabs(o2)) * @zscale
+      e3 = sqrt(2*log(cabs(z3)) * cabs(z3) / cabs(o3)) * @zscale
+    ENDIF
+    
+    ; apply transfer function
+    ; a function is not used because these are floats
+    ; and not all functions apply to floats
+    IF (@xfer == 1); log
+      e1 = log(e1)
+      e2 = log(e2)
+      e3 = log(e3)
+    ELSEIF (@xfer == 2); sqrt
+      e1 = sqrt(e1)
+      e2 = sqrt(e2)
+      e3 = sqrt(e3)
+    ELSEIF (@xfer == 3); cuberoot
+      e1 = (e1)^(1/3)
+      e2 = (e2)^(1/3)
+      e3 = (e3)^(1/3)
+    ELSEIF (@xfer == 4); exp
+      e1 = exp(e1)
+      e2 = exp(e2)
+      e3 = exp(e3)
+    ELSEIF (@xfer == 5); sqr
+      e1 = sqr(e1)
+      e2 = sqr(e2)
+      e3 = sqr(e3)
+    ELSEIF (@xfer == 6); cube
+      e1 = (e1)^3
+      e2 = (e2)^3
+      e3 = (e3)^3
+    ELSEIF (@xfer == 7); sin
+      e1 = sin(e1)
+      e2 = sin(e2)
+      e3 = sin(e3)
+    ELSEIF (@xfer == 8); cos
+      e1 = cos(e1)
+      e2 = cos(e2)
+      e3 = cos(e3)
+    ELSEIF (@xfer == 9); tan
+      e1 = tan(e1)
+      e2 = tan(e2)
+      e3 = tan(e3)
+    ENDIF
+
+    ; apply post-scale
+    e1 = e1 * @zscale2
+    e2 = e2 * @zscale2
+    e3 = e3 * @zscale2
+
+    ; determine surface normal
+    ; that is, the normal to the surface defined by:
+    ; (real(c1), imag(c1), e1)
+    ; (real(c2), imag(c2), e2)
+    ; (real(c3), imag(c3), e3)
+    vx = e2-e1
+    vy = e3-e1
+    vz = -@offset
+    ; normalize vector
+    vd = 1/sqrt(sqr(vx)+sqr(vy)+sqr(vz))
+    vx = vx*vd
+    vy = vy*vd
+    vz = vz*vd
+    z = vx + flip(vy); fudge z from vector
+  ELSE ; didn't compute z this time
+    z = z1; use primary iteration value to keep periodicity working
+  ENDIF
+  IF (modz > @bailout); we're done
+    done = 0
+  ENDIF
+  
+bailout:
+  (done > 0)
+  
+default:
+  title = "Slope (Julia)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\slope.html"
+  center = (0.0, 0.0)
+  maxiter = 1000
+  precision = 4
+
+  param seed
+    caption = "Julia Seed"
+    default = (-1.25, 0)
+    hint = "Use this parameter to create many different Julia sets. A good \
+            way to set this parameter is with the Switch, Eyedropper, or \
+            Explore features."
+  endparam
+  param power
+    caption = "Exponent"
+    default = (2,0)
+    hint = "Overall exponent for the equation. The value (2,0) gives \
+            the classic Julia type."
+  endparam
+  param bailout
+    caption = "Bail-out Value"
+    default = 1.0e20
+    min = 0.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "This parameter defines how soon an orbit bails out while \
+            iterating. Larger values give smoother outlines and better \
+            coloring; values around 4 give more interesting shapes around the \
+            set. Values less than 4 will distort the fractal."
+  endparam
+  param offset
+    caption = "Orbit Separation"
+    default = 0.00000001
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Defines how far apart the simultaneous orbits are.  Smaller \
+            distances will produce more accurate results."
+  endparam
+  param zmode
+    caption = "Height Value"
+    default = 0
+    enum = "potential" "smallest |z|" "smallest |real(z)|" \
+           "smallest |imag(z)|" "smallest summ(z)" "smallest |atan(z)|" \
+           "distance estimator"
+    hint = "Specifies what will be used to construct a height value."
+  endparam
+  param xfer
+    caption = "Height Transfer"
+    default = 0
+    enum = "linear" "log" "sqrt" "cuberoot" "exp" "sqr" "cube" "sin" "cos" "tan"
+    hint = "This function will be applied to the height value \
+            before a slope is calculated."
+  endparam
+  param zscale
+    caption = "Height Pre-Scale"
+    default = 1.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Specifies the ratio between height and distance.  Higher \
+            values will exaggerate differences between high and low. \
+            In general, you will want to use smaller numbers here."
+  endparam
+  param zscale2
+    caption = "Height Post-Scale"
+    default = 0.005
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Specifies the ratio between height and distance; like \
+            Height Pre-Scale, except that this value is applied after \
+            the transfer function."
+  endparam
+  param everyiter
+    caption = "Every Iteration"
+    default = false
+    hint = "If set, the surface normal will be computed at every \
+            iteration.  If you are using a coloring algorithm which \
+            processes every iteration, you will need this."
+  endparam
+
+switch:
+  type = "SlopeMandel"
+  power = @power
+  bailout = @bailout
+  offset = @offset
+  zmode = @zmode
+  xfer = @xfer
+  zscale = @zscale
+  zscale2 = @zscale2
+  everyiter = @everyiter
+}
+
+
+SlopeMandel {
+;
+; Mandelbrot set that creates 3D lighting effects when combined
+; with the Lighting coloring algorithm. The calculations
+; are modified so that z contains a surface normal
+; to the set instead of the orbit value.  This is
+; intended primarily for the Lighting coloring
+; method, but might have interesting results for
+; other methods, too.
+;
+init:
+  complex c1 = #pixel; primary iterated point
+  complex c2 = #pixel + @offset; horizontally offset point
+  complex c3 = #pixel + flip(@offset); vertically offset point
+  complex z1 = @start; starting value
+  complex z2 = @start
+  complex z3 = @start
+  int done = 2
+  float modz = 0.0
+  float il2 = 1/log(real(@power)); Inverse log 2 (precalc).
+  float lp = log(log(@bailout)); log(log bailout) (precalc).
+  float e1 = 0.0; potentials
+  float e2 = 0.0
+  float e3 = 0.0
+  float vx = 0.0; normal vector
+  float vy = 0.0
+  float vz = 0.0
+  float vd = 0.0
+  float d1 = 0.0; distances
+  float d2 = 0.0
+  float d3 = 0.0
+  float s1 = 1.0e20; smallest distances
+  float s2 = 1.0e20
+  float s3 = 1.0e20
+  complex g1 = (0,0); distance estimates
+  complex g2 = (0,0)
+  complex g3 = (0,0)
+  complex o1 = (0,0)
+  complex o2 = (0,0)
+  complex o3 = (0,0)
+  
+loop:
+  z1 = z1^@power + c1; iterate each point
+  z2 = z2^@power + c2
+  z3 = z3^@power + c3
+  done = done + 1; increment iteration counter
+
+  IF (@zmode == 1); smallest |z|
+    d1 = |z1|; get current distances from origin
+    d2 = |z2|
+    d3 = |z3|
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 2); smallest |real(z)|
+    d1 = abs(real(z1)); get current distances from i axis
+    d2 = abs(real(z2))
+    d3 = abs(real(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 3); smallest |imag(z)|
+    d1 = abs(imag(z1)); get current distances from r axis
+    d2 = abs(imag(z2))
+    d3 = abs(imag(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 4); smallest |real(z)|+|imag(z)|
+    d1 = abs(real(z1))+abs(imag(z1)); get current distances from i axis
+    d2 = abs(real(z2))+abs(imag(z2))
+    d3 = abs(real(z3))+abs(imag(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 5); smallest |atan(z)|
+    d1 = abs(atan2(z1)); get current angles
+    d2 = abs(atan2(z2))
+    d3 = abs(atan2(z3))
+    IF (d1 < s1); update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 6); distance estimator
+    o1 = g1
+    o2 = g2
+    o3 = g3
+    g1 = @power * z1^(@power-1) * g1 + 1; update distance estimates
+    g2 = @power * z2^(@power-1) * g2 + 1
+    g3 = @power * z3^(@power-1) * g3 + 1
+  ENDIF
+
+  modz = |z1|
+  IF (modz > @bailout ||\
+      @everyiter ||\
+      done == #maxit + 2); done, or every iteration, or last
+    ; determine continuous iteration (height) for each point
+    IF (@zmode == 0); height based on potential
+      e1 = (done + il2*lp - il2*log(log(cabs(z1)))) * @zscale
+      e2 = (done + il2*lp - il2*log(log(cabs(z2)))) * @zscale
+      e3 = (done + il2*lp - il2*log(log(cabs(z3)))) * @zscale
+    ELSEIF (@zmode >= 1 && @zmode <= 5); height based on smallest |z|
+      e1 = s1 * @zscale
+      e2 = s2 * @zscale
+      e3 = s3 * @zscale
+    ELSEIF (@zmode == 6); height based on distance estimator
+      e1 = sqrt(2*log(cabs(z1)) * cabs(z1) / cabs(o1)) * @zscale
+      e2 = sqrt(2*log(cabs(z2)) * cabs(z2) / cabs(o2)) * @zscale
+      e3 = sqrt(2*log(cabs(z3)) * cabs(z3) / cabs(o3)) * @zscale
+    ENDIF
+    
+    ; apply transfer function
+    ; a function is not used because these are floats
+    ; and not all functions apply to floats
+    IF (@xfer == 1); log
+      e1 = log(e1)
+      e2 = log(e2)
+      e3 = log(e3)
+    ELSEIF (@xfer == 2); sqrt
+      e1 = sqrt(e1)
+      e2 = sqrt(e2)
+      e3 = sqrt(e3)
+    ELSEIF (@xfer == 3); cuberoot
+      e1 = (e1)^(1/3)
+      e2 = (e2)^(1/3)
+      e3 = (e3)^(1/3)
+    ELSEIF (@xfer == 4); exp
+      e1 = exp(e1)
+      e2 = exp(e2)
+      e3 = exp(e3)
+    ELSEIF (@xfer == 5); sqr
+      e1 = sqr(e1)
+      e2 = sqr(e2)
+      e3 = sqr(e3)
+    ELSEIF (@xfer == 6); cube
+      e1 = (e1)^3
+      e2 = (e2)^3
+      e3 = (e3)^3
+    ELSEIF (@xfer == 7); sin
+      e1 = sin(e1)
+      e2 = sin(e2)
+      e3 = sin(e3)
+    ELSEIF (@xfer == 8); cos
+      e1 = cos(e1)
+      e2 = cos(e2)
+      e3 = cos(e3)
+    ELSEIF (@xfer == 9); tan
+      e1 = tan(e1)
+      e2 = tan(e2)
+      e3 = tan(e3)
+    ENDIF
+
+    ; apply post-scale
+    e1 = e1 * @zscale2
+    e2 = e2 * @zscale2
+    e3 = e3 * @zscale2
+
+    ; determine surface normal
+    ; that is, the normal to the surface defined by:
+    ; (real(c1), imag(c1), e1)
+    ; (real(c2), imag(c2), e2)
+    ; (real(c3), imag(c3), e3)
+    vx = e2-e1
+    vy = e3-e1
+    vz = -@offset
+    ; normalize vector
+    vd = 1/sqrt(sqr(vx)+sqr(vy)+sqr(vz))
+    vx = vx*vd
+    vy = vy*vd
+    vz = vz*vd
+    z = vx + flip(vy); fudge z from vector
+  ELSE ; didn't compute z this time
+    z = z1; use primary iteration value to keep periodicity working
+  ENDIF
+  IF (modz > @bailout); we're done
+    done = 0
+  ENDIF
+  
+bailout:
+  (done > 0)
+  
+default:
+  title = "Slope (Mandelbrot)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\slope.html"
+  center = (-0.5, 0.0)
+  maxiter = 1000
+
+  param start
+    caption = "Starting Point"
+    default = (0,0)
+    hint = "Starting value for each point.  You can use this to \
+            'perturb' the fractal."
+  endparam
+  param power
+    caption = "Exponent"
+    default = (2,0)
+    hint = "Overall exponent for the equation. The value (2,0) gives \
+            the classic Mandelbrot type."
+  endparam
+  param bailout
+    caption = "Bail-out Value"
+    default = 1.0e20
+    min = 0.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "This parameter defines how soon an orbit bails out while \
+            iterating. Larger values give smoother outlines and better \
+            coloring; values around 4 give more interesting shapes around the \
+            set. Values less than 4 will distort the fractal."
+  endparam
+  param offset
+    caption = "Orbit Separation"
+    default = 0.00000001
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Defines how far apart the simultaneous orbits are.  Smaller \
+            distances will produce more accurate results."
+  endparam
+  param zmode
+    caption = "Height Value"
+    default = 0
+    enum = "potential" "smallest |z|" "smallest |real(z)|" \
+           "smallest |imag(z)|" "smallest summ(z)" "smallest |atan(z)|" \
+           "distance estimator"
+    hint = "Specifies what will be used to construct a height value."
+  endparam
+  param xfer
+    caption = "Height Transfer"
+    default = 0
+    enum = "linear" "log" "sqrt" "cuberoot" "exp" "sqr" "cube" "sin" "cos" "tan"
+    hint = "This function will be applied to the height value \
+            before a slope is calculated."
+  endparam
+  param zscale
+    caption = "Height Pre-Scale"
+    default = 1.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Specifies the ratio between height and distance.  Higher \
+            values will exaggerate differences between high and low. \
+            In general, you will want to use smaller numbers here."
+  endparam
+  param zscale2
+    caption = "Height Post-Scale"
+    default = 0.005
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Specifies the ratio between height and distance; like \
+            Height Pre-Scale, except that this value is applied after \
+            the transfer function."
+  endparam
+  param everyiter
+    caption = "Every Iteration"
+    default = false
+    hint = "If set, the surface normal will be computed at every \
+            iteration.  If you are using a coloring algorithm which \
+            processes every iteration, you will need this."
+  endparam
+
+switch:
+  type = "SlopeJulia"
+  seed = #pixel
+  power = @power
+  bailout = @bailout
+  offset = @offset
+  zmode = @zmode
+  xfer = @xfer
+  zscale = @zscale
+  zscale2 = @zscale2
+  everyiter = @everyiter
+}
+
+
+SlopeNewton {
+;
+; Newton fractal that creates 3D lighting effects when combined
+; with the Lighting coloring algorithm and a suitable gradient.
+;
+; Written by Ron Barnett. Based upon formulas by Damien M. Jones.
+;
+init:
+  complex pwr = @p1 - 1.0
+  complex npwr = -@p1
+  complex rpwr = pwr/@p1
+  complex rrt = @p2/@p1
+  float pwrtest = 10^(100/cabs(@p1))
+  bool bTest = false
+  float isnear = 0.00001*cabs(@p2)^cabs(@p1)
+  complex z1 = #pixel                   ; primary iterated point
+  complex z2 = #pixel + @offset         ; horizontally offset point
+  complex z3 = #pixel + flip(@offset)   ; vertically offset point
+  int done = 2
+  float e1 = 0.0                        ; potentials
+  float e2 = 0.0
+  float e3 = 0.0
+  float vx = 0.0                        ; normal vector
+  float vy = 0.0
+  float vz = 0.0
+  float vd = 0.0
+  float d1 = 0.0                        ; distances
+  float d2 = 0.0
+  float d3 = 0.0
+  float s1 = 1.0e20                     ; smallest distances
+  float s2 = 1.0e20
+  float s3 = 1.0e20
+  float iterexp1 = 0.0
+  float iterexp2 = 0.0
+  float iterexp3 = 0.0
+
+loop:
+  complex oldz1 = z1
+  z11 = rrt*z1^npwr
+  z1 = z1*(rpwr + z11)
+  btest = (cabs(oldz1-z1) < isnear)
+  complex oldz2 = z2
+  z12 = rrt*z2^npwr
+  z2 = z2*(rpwr + z12)
+  complex oldz3 = z3
+  z13 = rrt*z3^npwr
+  z3 = z3*(rpwr + z13)
+  IF (@zmode == 5)
+    iterexp1 = iterexp1 + exp(-1/(cabs(oldz1 - z1)))
+    iterexp2 = iterexp2 + exp(-1/(cabs(oldz2 - z2)))
+    iterexp3 = iterexp3 + exp(-1/(cabs(oldz3 - z3)))
+  ENDIF
+  done = done + 1                       ; increment iteration counter
+
+  IF (@zmode == 0)                      ; smallest |z|
+    d1 = |z1|                           ; get current distances from origin
+    d2 = |z2|
+    d3 = |z3|
+    IF (d1 < s1)                        ; update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 1)                  ; smallest |real(z)|
+    d1 = abs(real(z1))                  ; get current distances from i axis
+    d2 = abs(real(z2))
+    d3 = abs(real(z3))
+    IF (d1 < s1)                        ; update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 2)                  ; smallest |imag(z)|
+    d1 = abs(imag(z1))                  ; get current distances from r axis
+    d2 = abs(imag(z2))
+    d3 = abs(imag(z3))
+    IF (d1 < s1)                        ; update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 3)                  ; smallest |real(z)|+|imag(z)|
+    d1 = abs(real(z1))+abs(imag(z1))    ; get current distances from i axis
+    d2 = abs(real(z2))+abs(imag(z2))
+    d3 = abs(real(z3))+abs(imag(z3))
+    IF (d1 < s1)                        ; update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ELSEIF (@zmode == 4)                  ; smallest |atan(z)|
+    d1 = abs(atan2(z1))                 ; get current angles
+    d2 = abs(atan2(z2))
+    d3 = abs(atan2(z3))
+    IF (d1 < s1)                        ; update smallest distances
+      s1 = d1
+    ENDIF
+    IF (d2 < s2)
+      s2 = d2
+    ENDIF
+    IF (d3 < s3)
+      s3 = d3
+    ENDIF
+  ENDIF
+
+  IF ( btest || cabs(z1) > pwrtest ||                \
+      @everyiter ||                     \
+      done == #maxit + 2)               ; done, or every iteration, or last
+    ; determine continuous iteration (height) for each point
+    IF (@zmode >= 0 && @zmode <= 4) ; height based on smallest |z|
+      e1 = s1 * @zscale
+      e2 = s2 * @zscale
+      e3 = s3 * @zscale
+    ELSEIF (@zmode == 5)
+      e1 = iterexp1 * @zscale
+      e2 = iterexp2 * @zscale
+      e3 = iterexp3 * @zscale
+    ENDIF
+
+    ; apply transfer function
+    ; a function is not used because these are floats
+    ; and not all functions apply to floats
+    IF (@xfer == 1)                     ; log
+      e1 = log(e1)
+      e2 = log(e2)
+      e3 = log(e3)
+    ELSEIF (@xfer == 2)                 ; sqrt
+      e1 = sqrt(e1)
+      e2 = sqrt(e2)
+      e3 = sqrt(e3)
+    ELSEIF (@xfer == 3)                 ; cuberoot
+      e1 = (e1)^(1/3)
+      e2 = (e2)^(1/3)
+      e3 = (e3)^(1/3)
+    ELSEIF (@xfer == 4)                 ; exp
+      e1 = exp(e1)
+      e2 = exp(e2)
+      e3 = exp(e3)
+    ELSEIF (@xfer == 5)                 ; sqr
+      e1 = sqr(e1)
+      e2 = sqr(e2)
+      e3 = sqr(e3)
+    ELSEIF (@xfer == 6)                 ; cube
+      e1 = (e1)^3
+      e2 = (e2)^3
+      e3 = (e3)^3
+    ELSEIF (@xfer == 7)                 ; sin
+      e1 = sin(e1)
+      e2 = sin(e2)
+      e3 = sin(e3)
+    ELSEIF (@xfer == 8)                 ; cos
+      e1 = cos(e1)
+      e2 = cos(e2)
+      e3 = cos(e3)
+    ELSEIF (@xfer == 9)                 ; tan
+      e1 = tan(e1)
+      e2 = tan(e2)
+      e3 = tan(e3)
+    ENDIF
+
+    ; apply post-scale
+    e1 = e1 * @zscale2
+    e2 = e2 * @zscale2
+    e3 = e3 * @zscale2
+
+      vx = e2-e1
+      vy = e3-e1
+      vz = -@offset
+      ; normalize vector
+      vd = 1/sqrt(sqr(vx)+sqr(vy)+sqr(vz))
+      vx = vx*vd
+      vy = vy*vd
+      vz = vz*vd
+      z = vx + flip(vy)                 ; fudge z from vector
+  ELSE                                  ; didn't compute z this time
+    z = z1                              ; use primary iteration value to keep periodicity working
+  ENDIF
+  IF (btest || cabs(z) > pwrtest)                            ; we're done
+    done = 0
+  ENDIF
+
+bailout:
+  (done > 0)
+
+default:
+  title = "Slope (Newton)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\slope.html"
+  center = (0.0, 0.0)
+  maxiter = 1000
+  periodicity = 0
+  precision = 4
+
+  param p1
+    caption = "Exponent"
+    default = (3,0)
+    hint = "Specifies the exponent of the equation that is solved by \
+            Newton's method. Use real numbers (set the imaginary component \
+            to zero) to obtain classic Newton fractals."
+  endparam
+
+  param p2
+    caption = "Root"
+    default = (1,0)
+    hint = "Specifies the root of the equation that is solved. Use larger \
+            numbers for slower convergence."
+  endparam
+
+  param offset
+    caption = "Orbit Separation"
+    default = 0.00000001
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Defines how far apart the simultaneous orbits are.  Smaller \
+            distances will produce more accurate results."
+  endparam
+  param zmode
+    caption = "Height Value"
+    default = 5
+    enum = "smallest |z|" "smallest |real(z)|" \
+           "smallest |imag(z)|" "smallest summ(z)" "smallest |atan(z)|" \
+           "smoothed iteration"
+    hint = "Specifies what will be used to construct a height value."
+  endparam
+  param xfer
+    caption = "Height Transfer"
+    default = 0
+    enum = "linear" "log" "sqrt" "cuberoot" "exp" "sqr" "cube" "sin" "cos" "tan"
+    hint = "This function will be applied to the height value \
+            before a slope is calculated."
+  endparam
+  param zscale
+    caption = "Height Pre-Scale"
+    default = 1.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Specifies the ratio between height and distance.  Higher \
+            values will exaggerate differences between high and low. \
+            In general, you will want to use smaller numbers here."
+  endparam
+  param zscale2
+    caption = "Height Post-Scale"
+    default = 0.01
+$IFDEF VER40
+    exponential = true
+$ENDIF
+    hint = "Specifies the ratio between height and distance; like \
+            Height Pre-Scale, except that this value is applied after \
+            the transfer function."
+  endparam
+  param everyiter
+    caption = "Every Iteration"
+    default = false
+    hint = "If set, the surface normal will be computed at every \
+            iteration.  If you are using a coloring algorithm which \
+            processes every iteration, you will need this."
+  endparam
+}
+
+
+EmbossedJulia {
+;
+; Julia set that creates 3D "embossed" lighting effects 
+; when combined with the Emboss coloring algorithm.
+;
+; Written by Kerry Mitchell.
+;
+init:
+  float theta=(90-@lightangle)*pi/180.0
+  float size=@sizefac*0.0065/#magn
+  dr=size*(cos(theta)+flip(sin(theta)))
+  z1=#pixel-dr
+  z2=#pixel+dr
+  c1=@julparam
+  c2=@julparam
+  int iter1=0
+  int iter2=0
+  int iter=0
+  float r=0.0
+  float t=0.0
+  float rmin=1e20
+  float part1=0.0
+  float part2=0.0
+loop:
+  iter=iter+1
+  if(iter1==0)
+    z1=z1^@nexp+c1
+    if(|z1|>@bailout)
+      iter1=iter
+    endif
+    if(@parttype==1)
+      if(real(z1)>0.0)
+        part1=part1+1.0
+      endif
+    elseif(@parttype==2)
+      if(imag(z1)>0.0)
+        part1=part1+1.0
+      endif
+    elseif(@parttype==3)
+      r=|z1|
+      if(r<rmin)
+        rmin=r
+        part1=iter
+      endif
+    elseif(@parttype==4)
+      part1=real(trunc(log(z1)))
+    elseif(@parttype==5)
+      t=0.5*atan2(z1)/pi
+      if(t<0.0)
+        t=t+1.0
+      endif
+      t=t*@numsect
+      part1=real(trunc(t))
+    else
+      part1=iter1
+    endif
+  endif
+  if(iter2==0)
+    z2=z2^@nexp+c2
+    if(|z2|>@bailout)
+      iter2=iter
+    endif
+    if(@parttype==1)
+      if(real(z2)>0.0)
+        part2=part2+1.0
+      endif
+    elseif(@parttype==2)
+      if(imag(z2)>0.0)
+        part2=part2+1.0
+      endif
+    elseif(@parttype==3)
+      r=|z2|
+      if(r<rmin)
+        rmin=r
+        part2=iter
+      endif
+    elseif(@parttype==4)
+      part2=real(trunc(log(z2)))
+    elseif(@parttype==5)
+      t=0.5*atan2(z2)/pi
+      if(t<0.0)
+        t=t+1.0
+      endif
+      t=t*@numsect
+      part2=real(trunc(t))
+    else
+      part2=iter2
+    endif
+  endif
+  z=part1+flip(part2)
+bailout:
+  (iter1==0)||(iter2==0)
+default:
+  title="Embossed (Julia)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\embossed.html"
+  maxiter=100
+  periodicity=0
+  center=(0.0,0.0)
+  magn=1.0
+  angle=0
+  method = onepass
+  periodicity = 0
+  param julparam
+    caption = "Julia seed"
+    default = (-1.25, 0)
+    hint = "Use this to create many different Julia sets. You can \
+            also set this with the Embossed (Mandelbrot) formula \
+            in Switch Mode."
+  endparam
+  param nexp
+    caption="Exponent"
+    default=2.0
+    hint = "Julia exponent. Must be greater than 1. Use 2 for the \
+            classic Julia set."
+    min=1.0
+  endparam
+  param bailout
+    caption="Bail-out Value"
+    hint = "This parameter defines how soon an orbit bails out while \
+            iterating. Larger values give smoother outlines and better \
+            coloring; values around 4 give more interesting shapes around the \
+            set. Values less than 4 will distort the fractal."
+    default=4.0
+    min=1.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+  endparam
+  param parttype
+    caption="Emboss Type"
+    default=0
+    hint = "Specifies what information from the fractal is used to \
+            create the embossing effect. This changes the shape of \
+            the embossing lines."
+    enum="Iteration" "Real(z) > 0" "Imag(z) > 0" "Smallest Magnitude"\
+      "Magnitude" "Angle"
+  endparam
+  param numsect
+    caption="Number of Sections"
+    default=2
+    min=1
+    hint = "Specifies the number of sections to use for the Angle \
+            emboss type."
+    visible = @parttype == "Angle"
+  endparam
+  param lightangle
+    caption="Light Angle"
+    default=0.0
+    hint="Angle of apparent light source, in degrees. With 0, the light \
+          comes from above. Positive values give clockwise rotation."
+  endparam
+  param sizefac
+    caption="Contour Size"
+    default=1.0
+    hint="Specifies the relative size of the contour bands. Larger values \
+          give thicker bands."
+$IFDEF VER40
+    exponential = true
+$ENDIF
+  endparam
+switch:
+  type="EmbossedMandelbrot"
+  bailout=bailout
+  nexp=nexp
+  parttype=parttype
+  numsect=numsect
+  sizefac=sizefac
+  lightangle=lightangle
+}
+
+
+EmbossedMandelbrot {
+;
+; Mandelbrot set that creates 3D "embossed" lighting effects 
+; when combined with the Embossed coloring algorithm.
+;
+; Written by Kerry Mitchell.
+;
+init:
+  float theta=(90-@lightangle)*pi/180.0
+  float size=@sizefac*0.0065/#magn
+  dr=size*(cos(theta)+flip(sin(theta)))
+  c1=#pixel-dr
+  c2=#pixel+dr
+  z1=@manparam
+  z2=@manparam
+  int iter1=0
+  int iter2=0
+  int iter=0
+  float r=0.0
+  float t=0.0
+  float rmin=1e20
+  float part1=0.0
+  float part2=0.0
+loop:
+  iter=iter+1
+  if(iter1==0)
+    z1=z1^@nexp+c1
+    if(|z1|>@bailout)
+      iter1=iter
+    endif
+    if(@parttype==1)
+      if(real(z1)>0.0)
+        part1=part1+1.0
+      endif
+    elseif(@parttype==2)
+      if(imag(z1)>0.0)
+        part1=part1+1.0
+      endif
+    elseif(@parttype==3)
+      r=|z1|
+      if(r<rmin)
+        rmin=r
+        part1=iter
+      endif
+    elseif(@parttype==4)
+      part1=real(trunc(log(z1)))
+    elseif(@parttype==5)
+      t=0.5*atan2(z1)/pi
+      if(t<0.0)
+        t=t+1.0
+      endif
+      t=t*@numsect
+      part1=real(trunc(t))
+    else
+      part1=iter1
+    endif
+  endif
+  if(iter2==0)
+    z2=z2^@nexp+c2
+    if(|z2|>@bailout)
+      iter2=iter
+    endif
+    if(@parttype==1)
+      if(real(z2)>0.0)
+        part2=part2+1.0
+      endif
+    elseif(@parttype==2)
+      if(imag(z2)>0.0)
+        part2=part2+1.0
+      endif
+    elseif(@parttype==3)
+      r=|z2|
+      if(r<rmin)
+        rmin=r
+        part2=iter
+      endif
+    elseif(@parttype==4)
+      part2=real(trunc(log(z2)))
+    elseif(@parttype==5)
+      t=0.5*atan2(z2)/pi
+      if(t<0.0)
+        t=t+1.0
+      endif
+      t=t*@numsect
+      part2=real(trunc(t))
+    else
+      part2=iter2
+    endif
+  endif
+  z=part1+flip(part2)
+bailout:
+  (iter1==0)||(iter2==0)
+default:
+  title="Embossed (Mandelbrot)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\embossed.html"
+  maxiter=100
+  periodicity=0
+  center=(-0.5,0.0)
+  magn=1.0
+  angle=0
+  method = onepass
+  param manparam
+    caption="Starting Point"
+    default=(0.0,0.0)
+    hint="Perturbs the Mandelbrot set. Use (0,0) for the classic set."
+  endparam
+  param nexp
+    caption="Exponent"
+    default=2.0
+    hint="Mandelbrot exponent. Must be larger than 1. Use 2 for the \
+          classic set."
+    min=1.0
+  endparam
+  param bailout
+    caption="Bail-out Value"
+    default=4.0
+    hint = "This parameter defines how soon an orbit bails out while \
+            iterating. Larger values give smoother outlines and better \
+            coloring; values around 4 give more interesting shapes around the \
+            set. Values less than 4 will distort the fractal."
+    min=1.0
+$IFDEF VER40
+    exponential = true
+$ENDIF
+  endparam
+  param parttype
+    caption="Emboss Type"
+    default=0
+    hint = "Specifies what information from the fractal is used to \
+            create the embossing effect. This changes the shape of \
+            the embossing lines."
+    enum="Iteration" "Real(z) > 0" "Imag(z) > 0" "Smallest Magnitude" \
+      "Magnitude" "Angle"
+  endparam
+  param numsect
+    caption="Number of Sections"
+    default=2
+    min=1
+    hint = "Specifies the number of sections to use for the Angle \
+            emboss type."
+    visible = @parttype == "Angle"
+  endparam
+  param lightangle
+    caption="Light Angle"
+    default=0.0
+    hint="Angle of apparent light source, in degrees. With 0, the light \
+          comes from above. Positive values give clockwise rotation."
+  endparam
+  param sizefac
+    caption="Contour Size"
+    default=1.0
+    hint="Specifies the relative size of the contour bands. Larger values \
+          give thicker bands."
+$IFDEF VER40
+    exponential = true
+$ENDIF
+  endparam
+switch:
+  type="EmbossedJulia"
+  julparam=#pixel
+  nexp=nexp
+  bailout=bailout
+  parttype=parttype
+  numsect=numsect
+  sizefac=sizefac
+  lightangle=lightangle
+}
+
+
+EmbossedNewton {
+;
+; Newton fractal that creates 3D "embossed" lighting effects 
+; when combined with the Embossed coloring algorithm.
+;
+; Written by Kerry Mitchell.
+;
+init:
+  float theta=(90 - @lightangle)*pi/180.0
+  float size=@sizefac*0.0065/#magn
+  dr=size*(cos(theta)+flip(sin(theta)))
+  float nfac=1.0/@nexp
+  int nm1=@nexp-1
+  z1=#pixel-dr
+  z2=#pixel+dr
+  int iter1=0
+  int iter2=0
+  int iter=0
+  float r=0.0
+  float t=0.0
+  float rmin=1e20
+  float part1=0.0
+  float part2=0.0
+loop:
+  iter=iter+1
+  if(iter1==0)
+    fp=z1^nm1
+    f=z1*fp+(1.0,0.0)
+    dz=nfac*f/fp
+    z1=z1-dz
+    dz=1.0/dz
+    if(|dz|>@bailout)
+      iter1=iter
+    endif
+    if(@parttype==1)
+      if(real(dz)>0.0)
+        part1=part1+1.0
+      endif
+    elseif(@parttype==2)
+      if(imag(dz)>0.0)
+        part1=part1+1.0
+      endif
+    elseif(@parttype==3)
+      r=|dz|
+      if(r<rmin)
+        rmin=r
+        part1=iter
+      endif
+    elseif(@parttype==4)
+      part1=real(trunc(log(dz)))
+    elseif(@parttype==5)
+      t=0.5*atan2(dz)/pi
+      if(t<0.0)
+        t=t+1.0
+      endif
+      t=t*@numsect
+      part1=real(trunc(t))
+    else
+      part1=iter1
+    endif
+  endif
+  if(iter2==0)
+    fp=z2^nm1
+    f=z2*fp+(1.0,0.0)
+    dz=nfac*f/fp
+    z2=z2-dz
+    dz=1.0/dz
+    if(|dz|>@bailout)
+      iter2=iter
+    endif
+    if(@parttype==1)
+      if(real(dz)>0.0)
+        part2=part2+1.0
+      endif
+    elseif(@parttype==2)
+      if(imag(dz)>0.0)
+        part2=part2+1.0
+      endif
+    elseif(@parttype==3)
+      r=|dz|
+      if(r<rmin)
+        rmin=r
+        part2=iter
+      endif
+    elseif(@parttype==4)
+      part2=real(trunc(log(dz)))
+    elseif(@parttype==5)
+      t=0.5*atan2(dz)/pi
+      if(t<0.0)
+        t=t+1.0
+      endif
+      t=t*@numsect
+      part2=real(trunc(t))
+    else
+      part2=iter2
+    endif
+  endif
+  z=part1+flip(part2)
+bailout:
+  (iter1==0)||(iter2==0)
+default:
+  title="Embossed (Newton)"
+  helpfile = "Uf*.chm"
+  helptopic = "Html\formulas\standard\embossed.html"
+  maxiter=100
+  center=(0.0,0.0)
+  magn=1.0
+  angle=0
+  method=onepass
+  periodicity=0
+  param nexp
+    caption="Exponent"
+    hint = "Specifies the exponent of the equation that is solved by \
+            Newton's method."
+    default=3
+    min=2
+  endparam
+  param bailout
+    caption="Bail-out Value"
+    hint="Defines how soon an orbit bails out. Use large values."
+    default=1000.0
+    min=0.0
+  endparam
+  param parttype
+    caption="Emboss Type"
+    default=0
+    enum="Iteration" "Real(z) > 0" "Imag(z) > 0" "Smallest Magnitude" \
+      "Magnitude" "Angle"
+  endparam
+  param numsect
+    caption="Number of Sections"
+    default=2
+    min=1
+    hint = "Specifies the number of sections to use for the Angle \
+            emboss type."
+    visible = @parttype == "Angle"
+  endparam
+  param lightangle
+    caption="Light Angle"
+    default=0.0
+    hint="Angle of apparent light source, in degrees. With 0, the light \
+          comes from above. Positive values give clockwise rotation."
+  endparam
+  param sizefac
+    caption="Contour Size"
+    default=1.0
+    hint="Specifies the relative size of the contour bands. Larger values \
+          give thicker bands."
+$IFDEF VER40
+    exponential = true
+$ENDIF
+  endparam
+}
+
+
+Pixel {
+; Based on mt-pixel by Mark Townsend.
+init:
+  z = #pixel
+loop:
+bailout:
+  false
+default:
+  title = "Pixel"
+  helpfile = "Uf*.chm"
+  helptopic = "Html/formulas/standard/pixel.html"
+  heading
+    text = "Tip: the Pixel formula marks all pixels in this layer as outside, \
+      so the layer is exclusively controlled by the coloring algorithm \
+      selected on the Outside tab."
+  endheading
+}
+
+
+GenericFormula {
+;
+; Plug-In Formula is a skeleton fractal formula that accepts Formula objects.
+; All fractal formulas in this file are also implemented as Formula objects in
+; Standard.ulb to use with Plug-In Formula.
+;
+global:
+  import "common.ulb"
+  import "Standard.ulb"
+  Formula f = new @formulaClass(0)
+init:
+  #z = f.Init(#pixel)
+loop:
+  #z = f.Iterate(#z)
+bailout:
+  !f.IsBailedOut(#z)
+default:
+  title = "Plug-In Formula"
+  helpfile = "Uf*.chm"
+  helptopic = "Html/formulas/standard/pluginformula.html"
+  rating = recommended
+  Formula param formulaClass
+    caption = "Fractal Formula"
+    default = Standard_Mandelbrot
+  endparam
+}
+
